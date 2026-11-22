@@ -1,0 +1,88 @@
+{
+  "name": "Singapore Residential Tenancy Playbook (Tenant-Protective)",
+  "document_type": "Residential Tenancy Agreement",
+  "jurisdiction": "Singapore",
+  "disclaimer": "PORTFOLIO DEMO ONLY — NOT LEGAL ADVICE. Rules and statutory references must be reviewed by a Singapore-qualified Advocate & Solicitor before reliance.",
+  "rules": [
+    {
+      "id": "SG-TA-01",
+      "category": "Stamp Duty",
+      "title": "Stamp Duty Responsibility & 14-Day Stamping Window",
+      "enabled": true,
+      "target_position": "Contract explicitly states who bears Stamp Duty (customarily Tenant) and requires stamping via IRAS within 14 days of execution in Singapore (or 30 days if signed overseas).",
+      "unacceptable_triggers": "Clause is completely missing, waives stamping, or imposes penalties blocking IRAS stamping.",
+      "statute_reference": "Stamp Duties Act 1929 (Cap. 312), s. 15 & s. 52 (unstamped instruments inadmissible in court)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "SG-TA-02",
+      "category": "Minimum Lease & Occupancy",
+      "title": "Statutory Minimum Stay & URA/HDB Occupancy Caps",
+      "enabled": true,
+      "target_position": "Lease term is at least 3 consecutive months for private residential properties (or at least 6 months for HDB flats), and maximum unrelated occupants do not exceed 6 (or 8 for larger approved properties).",
+      "unacceptable_triggers": "Lease term under 3 months for private property, under 6 months for HDB, or permits unlawful short-term/subletting occupancy.",
+      "statute_reference": "Planning Act 1998 (URA Minimum Stay Rules) / Housing and Development Act 1959",
+      "severity": "HIGH"
+    },
+    {
+      "id": "SG-TA-03",
+      "category": "Illegal Eviction & Self-Help",
+      "title": "Prohibition on Unilateral Lockout or Seizure of Goods",
+      "enabled": true,
+      "target_position": "Landlord remedies for rent arrears require formal written notice, cure period (minimum 7–14 days), and due legal process without unilateral lockouts or seizing tenant property.",
+      "unacceptable_triggers": "Authorizes Landlord to forcibly enter, change locks, cut utilities, or seize/sell Tenant belongings without a court writ of distress.",
+      "statute_reference": "Distress Act 1934 (s. 4–5) & Conveyancing and Law of Property Act 1886",
+      "severity": "HIGH"
+    },
+    {
+      "id": "SG-TA-04",
+      "category": "Security Deposit",
+      "title": "Security Deposit Cap & Refund Timeline",
+      "enabled": true,
+      "target_position": "Security deposit is capped at 1 month rent for a 1-year lease (or 2 months for a 2-year lease) and refundable interest-free within 14 days of handover, minus itemized repair deductions.",
+      "unacceptable_triggers": "Deposit exceeds 2 months rent, allows arbitrary forfeiture for fair wear and tear, or omits a clear refund timeline.",
+      "statute_reference": "CEA Standard Tenancy Template Practice / Common Law Fair Wear & Tear",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "SG-TA-05",
+      "category": "Minor Repairs",
+      "title": "Minor Repair Liability Cap",
+      "enabled": true,
+      "target_position": "Tenant liability for minor repairs is capped at S$150 to S$200 per item/incident, with structural, plumbing, and major appliance replacements borne by Landlord.",
+      "unacceptable_triggers": "Unlimited repair liability on Tenant, cap exceeding S$250 per item, or shifting structural/aircon compressor replacement onto Tenant.",
+      "statute_reference": "CEA Prescribed Residential Tenancy Guidelines",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "SG-TA-06",
+      "category": "Diplomatic Clause",
+      "title": "Diplomatic / Early Termination Clause (For Leases >= 24 Months)",
+      "enabled": true,
+      "target_position": "For leases of 24 months or longer, Tenant may terminate after 12 months by giving 2 months notice (or rent in lieu) if transferred out of Singapore or ceasing employment.",
+      "unacceptable_triggers": "2-year lease omits a diplomatic clause entirely or requires Tenant to pay the full remaining lease balance upon relocation.",
+      "statute_reference": "Singapore Residential Leasing Market Standard (CEA Guidelines)",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "SG-TA-07",
+      "category": "Personal Data",
+      "title": "PDPA Compliance for Tenant NRIC/FIN & Personal Data",
+      "enabled": true,
+      "target_position": "Landlord and agents collect, use, and retain Tenant/occupant personal data strictly for tenancy administration and statutory reporting in compliance with PDPA.",
+      "unacceptable_triggers": "Grants Landlord broad rights to share or sell Tenant personal data to third-party marketers.",
+      "statute_reference": "Personal Data Protection Act 2012 (PDPA), s. 13 & s. 24",
+      "severity": "LOW"
+    },
+    {
+      "id": "SG-TA-08",
+      "category": "Governing Law & Disputes",
+      "title": "Singapore Governing Law & Small Claims Tribunals Compatibility",
+      "enabled": true,
+      "target_position": "Agreement is governed by the laws of the Republic of Singapore and submits to the non-exclusive jurisdiction of Singapore Courts (preserving Small Claims Tribunals eligibility for leases <= 2 years).",
+      "unacceptable_triggers": "Foreign governing law or exclusive high-cost arbitration clauses that strip Small Claims Tribunals access.",
+      "statute_reference": "Small Claims Tribunals Act 1984 (s. 5 — residential leases up to 2 years)",
+      "severity": "HIGH"
+    }
+  ]
+}

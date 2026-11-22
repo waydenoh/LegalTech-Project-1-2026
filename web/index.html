@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SG Playbook Contract Reviewer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --panel-alt: #162033;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --high: #ef4444;
+      --high-bg: rgba(239, 68, 68, 0.14);
+      --med: #f59e0b;
+      --med-bg: rgba(245, 158, 11, 0.14);
+      --low: #38bdf8;
+      --low-bg: rgba(56, 189, 248, 0.14);
+      --pass: #10b981;
+      --pass-bg: rgba(16, 185, 129, 0.14);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .disclaimer-bar {
+      background: #172554;
+      border-bottom: 1px solid #1e40af;
+      color: #bfdbfe;
+      font-size: 12px;
+      padding: 6px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand { display: flex; flex-direction: column; }
+    .brand h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .brand span { font-size: 12px; color: var(--muted); }
+
+    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--high); }
+    .status-dot.online { background: var(--pass); }
+
+    select, button {
+      font-family: var(--sans);
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      padding: 7px 12px;
+      background: var(--panel-alt);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button:hover { border-color: #475569; background: #263349; }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 600;
+      color: #ffffff;
+    }
+    button.primary:hover { background: var(--accent-hover); }
+    button.primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-right: 1px solid var(--border);
+    }
+    .pane:last-child { border-right: none; }
+
+    .pane-header {
+      padding: 10px 16px;
+      background: var(--panel-alt);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pane-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .pane-actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    .contract-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      position: relative;
+    }
+
+    textarea#contractInput {
+      flex: 1;
+      width: 100%;
+      border: none;
+      resize: none;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+      user-select: text;
+    }
+    textarea#contractInput:focus { outline: none; }
+
+    #contractHighlightView {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+    }
+
+    mark.quote-highlight {
+      background: rgba(245, 158, 11, 0.35);
+      color: #fef3c7;
+      border-bottom: 2px solid var(--med);
+      padding: 2px 0;
+      border-radius: 2px;
+    }
+
+    .results-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      user-select: text;
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .metric-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .metric-value { font-size: 20px; font-weight: 700; margin-top: 2px; }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .tab-btn {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+    }
+    .tab-btn.active {
+      background: var(--panel);
+      border-color: var(--border);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .finding-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .finding-card.status-FLAGGED { border-left-color: var(--high); }
+    .finding-card.status-MISSING_CLAUSE { border-left-color: var(--med); }
+    .finding-card.status-PASS { border-left-color: var(--pass); }
+
+    .finding-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .finding-title { font-size: 14px; font-weight: 600; }
+    .finding-id { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+    .badges { display: flex; gap: 6px; flex-shrink: 0; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .badge-HIGH { background: var(--high-bg); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-MEDIUM { background: var(--med-bg); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .badge-LOW { background: var(--low-bg); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); }
+    .badge-PASS { background: var(--pass-bg); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-FLAGGED { background: var(--high-bg); color: #fca5a5; }
+    .badge-MISSING_CLAUSE { background: var(--med-bg); color: #fcd34d; }
+
+    .statute-tag { font-size: 12px; color: #93c5fd; font-weight: 500; }
+    .explanation { font-size: 13px; line-height: 1.55; color: #e2e8f0; }
+
+    .quote-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .quote-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--sans);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .redline-box {
+      background: rgba(16, 185, 129, 0.07);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .redline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6ee7b7;
+    }
+    .redline-clause {
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      color: #ecfdf5;
+      background: rgba(15, 23, 42, 0.65);
+      padding: 10px;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    .redline-note { font-size: 12px; color: #a7f3d0; }
+
+    .empty-state {
+      margin: auto;
+      text-align: center;
+      max-width: 380px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.72);
+      z-index: 40;
+      justify-content: flex-end;
+    }
+    .drawer-backdrop.open { display: flex; }
+
+    .drawer {
+      width: 660px;
+      max-width: 95vw;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-header h2 { margin: 0; font-size: 15px; font-weight: 600; }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .drawer-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel-alt);
+    }
+
+    .rule-editor-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rule-editor-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    .field-group.full { grid-column: 1 / -1; }
+    .field-group label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .field-group input, .field-group textarea, .field-group select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 5px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: var(--sans);
+      user-select: text;
+    }
+    .field-group textarea { resize: vertical; min-height: 48px; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="disclaimer-bar">
+    <span id="disclaimerText">PORTFOLIO DEMO ONLY — NOT LEGAL ADVICE. Rules and statutory references must be reviewed by a Singapore-qualified Advocate &amp; Solicitor before reliance.</span>
+    <span>Local-First Desktop App (Ollama)</span>
+  </div>
+
+  <header>
+    <div class="brand">
+      <h1>Singapore Playbook Contract Reviewer</h1>
+      <span id="playbookSubtitle">Residential Tenancy Agreement — Statutory &amp; Playbook Audit</span>
+    </div>
+
+    <div class="controls">
+      <div class="status-pill" id="ollamaStatus">
+        <span class="status-dot" id="ollamaDot"></span>
+        <span id="ollamaStatusText">Checking Ollama...</span>
+      </div>
+
+      <select id="modelSelect" title="Select local Ollama model">
+        <option value="qwen3.5:4b">qwen3.5:4b</option>
+      </select>
+
+      <label class="toggle-label">
+        <input type="checkbox" id="redlineToggle" checked />
+        Draft Fallback Redlines
+      </label>
+
+      <button type="button" id="openPlaybookBtn">Edit Playbook (<span id="activeRuleCount">8</span>)</button>
+      <button type="button" class="primary" id="runAuditBtn">Run Playbook Review</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Contract Document</span>
+        <div class="pane-actions">
+          <input type="file" id="filePicker" accept=".txt,.md" style="display:none;" />
+          <button type="button" class="btn-sm" id="openFileBtn">Open .txt File</button>
+          <button type="button" class="btn-sm" id="loadSampleNonCompliantBtn">Sample (Traps)</button>
+          <button type="button" class="btn-sm" id="loadSampleCompliantBtn">Sample (Standard)</button>
+          <button type="button" class="btn-sm" id="toggleEditModeBtn" style="display:none;">Edit Text</button>
+        </div>
+      </div>
+      <div class="contract-body">
+        <textarea id="contractInput" placeholder="Paste a Singapore Residential Tenancy Agreement here, open a .txt file, or load one of the sample templates above..."></textarea>
+        <div id="contractHighlightView"></div>
+      </div>
+    </section>
+
+    <section class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Compliance &amp; Redline Report</span>
+        <div class="pane-actions">
+          <button type="button" class="btn-sm" id="copyMarkdownBtn" disabled>Copy Markdown</button>
+          <button type="button" class="btn-sm" id="downloadMarkdownBtn" disabled>Save Report (.md)</button>
+        </div>
+      </div>
+
+      <div class="results-body" id="resultsBody">
+        <div class="empty-state">
+          Load or paste a contract on the left, customize your Singapore statutory rules in <strong>Edit Playbook</strong>, and click <strong>Run Playbook Review</strong>.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="drawer-backdrop" id="playbookDrawer">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>Editable Playbook Rules (Singapore)</h2>
+        <button type="button" class="btn-sm" id="closePlaybookBtn">Close</button>
+      </div>
+      <div class="drawer-body" id="rulesEditorList"></div>
+      <div class="drawer-footer">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn-sm" id="addRuleBtn">+ Add Custom Rule</button>
+          <button type="button" class="btn-sm" id="resetPlaybookBtn">Reset Defaults</button>
+        </div>
+        <button type="button" class="primary btn-sm" id="savePlaybookBtn">Save Playbook</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "sg_playbook_desktop_v1";
+    let playbookState = null;
+    let defaultPlaybookCopy = null;
+    let lastReport = null;
+    let lastMarkdown = "";
+    let activeFilter = "ALL";
+
+    const SAMPLE_NON_COMPLIANT = `RESIDENTIAL TENANCY AGREEMENT (SINGAPORE)
+
+1. PREMISES AND TERM
+The Landlord agrees to let and the Tenant agrees to take the private condominium apartment at 10 Marina Boulevard, Singapore for a fixed term of one (1) month commencing 1 December 2026 and expiring 31 December 2026.
+
+2. RENT AND SECURITY DEPOSIT
+The monthly rent shall be S$4,500 payable in advance. Upon signing, the Tenant shall pay a security deposit of S$13,500 (equivalent to three months' rent). The Landlord may forfeit the entire security deposit at its sole discretion for any minor wall scuffs or fair wear and tear.
+
+3. DEFAULT AND RE-ENTRY
+If the rent remains unpaid for three (3) days after becoming due, the Landlord may immediately enter the premises without prior notice, change all door locks, disconnect electricity and water supplies, and seize and sell the Tenant's personal belongings on the premises to recover arrears.
+
+4. REPAIRS AND MAINTENANCE
+The Tenant shall be solely responsible for all repairs and replacements of any nature and cost throughout the tenancy, including structural defects, plumbing pipes, and replacement of the air-conditioning compressor.
+
+5. PERSONAL DATA
+The Tenant consents to the Landlord sharing and selling the Tenant's NRIC/FIN details and contact records to third-party marketing partners.
+
+6. GOVERNING LAW AND DISPUTES
+This Agreement shall be governed by the laws of the State of California, USA, and any dispute shall be resolved exclusively by binding arbitration seated in San Francisco.`;
+
+    const SAMPLE_COMPLIANT = `RESIDENTIAL TENANCY AGREEMENT (SINGAPORE)
+
+1. PREMISES AND TERM
+The Landlord lets to the Tenant the private residential apartment at 88 Orchard Boulevard, Singapore for a fixed term of twenty-four (24) months commencing 1 January 2027 and expiring 31 December 2028. Maximum occupancy shall not exceed six (6) unrelated persons in accordance with URA regulations.
+
+2. RENT AND SECURITY DEPOSIT
+Monthly rent is S$4,200. The Tenant shall pay a security deposit of S$8,400 (two months' rent), refundable interest-free within fourteen (14) days of vacant possession handover, subject only to itemized deductions for damage beyond fair wear and tear.
+
+3. STAMP DUTY
+Stamp duty payable on this Agreement under the Stamp Duties Act 1929 shall be borne by the Tenant and paid to IRAS within fourteen (14) days of execution in Singapore.
+
+4. MINOR REPAIRS
+The Tenant shall bear the cost of minor repairs and routine replacement of consumables up to S$150 per item or incident. Structural repairs, concealed plumbing, and major air-conditioning unit replacements shall be borne by the Landlord.
+
+5. DIPLOMATIC CLAUSE
+After twelve (12) months of the tenancy, if the Tenant is transferred out of Singapore or ceases employment in Singapore, the Tenant may terminate this Agreement by giving two (2) months' prior written notice or two (2) months' rent in lieu.
+
+6. DEFAULT AND REMEDIES
+If rent remains unpaid for fourteen (14) days after formal written demand, the Landlord may pursue remedies strictly in accordance with due legal process under Singapore law and the Distress Act 1934.
+
+7. PERSONAL DATA PROTECTION
+The Landlord and estate agents shall collect, use, and disclose the Tenant's personal data solely for tenancy administration and statutory reporting in compliance with the Personal Data Protection Act 2012 (PDPA).
+
+8. GOVERNING LAW
+This Agreement is governed by the laws of the Republic of Singapore, and the parties submit to the non-exclusive jurisdiction of the Singapore Courts (including the Small Claims Tribunals where applicable).`;
+
+    // Keep desktop host alive while window is open; exit cleanly when window closes
+    setInterval(() => { fetch("/api/ping").catch(() => {}); }, 2000);
+    window.addEventListener("beforeunload", () => {
+      navigator.sendBeacon("/api/shutdown");
+    });
+
+    async function init() {
+      await checkHealth();
+      await loadPlaybook();
+      bindEvents();
+    }
+
+    async function checkHealth() {
+      const dot = document.getElementById("ollamaDot");
+      const text = document.getElementById("ollamaStatusText");
+      const select = document.getElementById("modelSelect");
+
+      try {
+        const res = await fetch("/health");
+        const data = await res.json();
+        if (data.ollama_err) {
+          dot.classList.remove("online");
+          text.textContent = "Ollama Offline";
+          return;
+        }
+        dot.classList.add("online");
+        text.textContent = "Ollama Connected";
+        if (Array.isArray(data.models) && data.models.length > 0) {
+          select.innerHTML = data.models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
+        }
+      } catch (err) {
+        dot.classList.remove("online");
+        text.textContent = "Engine Error";
+      }
+    }
+
+    async function loadPlaybook() {
+      const res = await fetch("/api/playbook");
+      const serverPB = await res.json();
+      defaultPlaybookCopy = JSON.parse(JSON.stringify(serverPB));
+
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try { playbookState = JSON.parse(saved); } catch { playbookState = serverPB; }
+      } else {
+        playbookState = serverPB;
+      }
+      updatePlaybookHeader();
+    }
+
+    function updatePlaybookHeader() {
+      const activeCount = playbookState.rules.filter(r => r.enabled).length;
+      document.getElementById("activeRuleCount").textContent = activeCount;
+      document.getElementById("playbookSubtitle").textContent = `${playbookState.name} (${activeCount} active rules)`;
+      if (playbookState.disclaimer) {
+        document.getElementById("disclaimerText").textContent = playbookState.disclaimer;
+      }
+    }
+
+    function bindEvents() {
+      document.getElementById("openFileBtn").addEventListener("click", () => {
+        document.getElementById("filePicker").click();
+      });
+
+      document.getElementById("filePicker").addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        switchToEditMode();
+        document.getElementById("contractInput").value = text;
+        e.target.value = "";
+      });
+
+      document.getElementById("loadSampleNonCompliantBtn").addEventListener("click", () => {
+        switchToEditMode();
+        document.getElementById("contractInput").value = SAMPLE_NON_COMPLIANT;
+      });
+
+      document.getElementById("loadSampleCompliantBtn").addEventListener("click", () => {
+        switchToEditMode();
+        document.getElementById("contractInput").value = SAMPLE_COMPLIANT;
+      });
+
+      document.getElementById("toggleEditModeBtn").addEventListener("click", switchToEditMode);
+      document.getElementById("runAuditBtn").addEventListener("click", runAudit);
+
+      document.getElementById("openPlaybookBtn").addEventListener("click", () => {
+        renderRulesEditor();
+        document.getElementById("playbookDrawer").classList.add("open");
+      });
+
+      document.getElementById("closePlaybookBtn").addEventListener("click", () => {
+        document.getElementById("playbookDrawer").classList.remove("open");
+      });
+
+      document.getElementById("addRuleBtn").addEventListener("click", () => {
+        const nextNum = playbookState.rules.length + 1;
+        playbookState.rules.push({
+          id: `SG-TA-0${nextNum}`,
+          category: "Custom Rule",
+          title: "New Playbook Requirement",
+          enabled: true,
+          target_position: "Describe the acceptable standard required in the contract.",
+          unacceptable_triggers: "Describe the wording or omission that should be flagged.",
+          statute_reference: "Relevant Singapore Statute or Guideline",
+          severity: "MEDIUM"
+        });
+        renderRulesEditor();
+      });
+
+      document.getElementById("resetPlaybookBtn").addEventListener("click", () => {
+        playbookState = JSON.parse(JSON.stringify(defaultPlaybookCopy));
+        localStorage.removeItem(STORAGE_KEY);
+        renderRulesEditor();
+        updatePlaybookHeader();
+      });
+
+      document.getElementById("savePlaybookBtn").addEventListener("click", () => {
+        collectRulesFromEditor();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(playbookState));
+        updatePlaybookHeader();
+        document.getElementById("playbookDrawer").classList.remove("open");
+      });
+
+      document.getElementById("copyMarkdownBtn").addEventListener("click", async () => {
+        if (!lastMarkdown) return;
+        await navigator.clipboard.writeText(lastMarkdown);
+        const btn = document.getElementById("copyMarkdownBtn");
+        btn.textContent = "Copied";
+        setTimeout(() => { btn.textContent = "Copy Markdown"; }, 1500);
+      });
+
+      document.getElementById("downloadMarkdownBtn").addEventListener("click", () => {
+        if (!lastMarkdown) return;
+        const blob = new Blob([lastMarkdown], { type: "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "sg-playbook-audit-report.md";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function switchToEditMode() {
+      document.getElementById("contractHighlightView").style.display = "none";
+      document.getElementById("contractInput").style.display = "block";
+      document.getElementById("toggleEditModeBtn").style.display = "none";
+    }
+
+    function highlightContractQuote(quote) {
+      const text = document.getElementById("contractInput").value;
+      const view = document.getElementById("contractHighlightView");
+      if (!quote || !text.includes(quote)) {
+        switchToEditMode();
+        return;
+      }
+      const idx = text.indexOf(quote);
+      const before = escapeHtml(text.slice(0, idx));
+      const match = escapeHtml(text.slice(idx, idx + quote.length));
+      const after = escapeHtml(text.slice(idx + quote.length));
+
+      view.innerHTML = `${before}<mark class="quote-highlight" id="activeQuoteMark">${match}</mark>${after}`;
+      document.getElementById("contractInput").style.display = "none";
+      view.style.display = "block";
+      document.getElementById("toggleEditModeBtn").style.display = "inline-block";
+
+      const mark = document.getElementById("activeQuoteMark");
+      if (mark) mark.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    async function runAudit() {
+      const contractText = document.getElementById("contractInput").value.trim();
+      if (!contractText) {
+        alert("Please paste contract text, open a file, or load a sample contract first.");
+        return;
+      }
+
+      const btn = document.getElementById("runAuditBtn");
+      const resultsBody = document.getElementById("resultsBody");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner"></span>Reviewing...`;
+
+      resultsBody.innerHTML = `
+        <div class="empty-state">
+          Running local two-pass review with <strong>${escapeHtml(document.getElementById("modelSelect").value)}</strong>.<br/>
+          Pass 1 evaluates playbook rules and statutory references; Pass 2 drafts fallback redlines for deviations.
+        </div>`;
+
+      try {
+        const res = await fetch("/api/review", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            playbook: playbookState,
+            contract_text: contractText,
+            generate_redlines: document.getElementById("redlineToggle").checked,
+            model: document.getElementById("modelSelect").value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Review request failed");
+
+        lastReport = data.report;
+        lastMarkdown = data.markdown || "";
+        activeFilter = "ALL";
+        document.getElementById("copyMarkdownBtn").disabled = false;
+        document.getElementById("downloadMarkdownBtn").disabled = false;
+        renderReport();
+      } catch (err) {
+        resultsBody.innerHTML = `<div class="finding-card status-FLAGGED"><div class="finding-title">Review Error</div><div class="explanation">${escapeHtml(err.message)}</div></div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Run Playbook Review";
+      }
+    }
+
+    function renderReport() {
+      if (!lastReport) return;
+      const resultsBody = document.getElementById("resultsBody");
+      const findings = lastReport.findings || [];
+      const passCount = findings.filter(f => f.status === "PASS").length;
+
+      const filtered = findings.filter(f => {
+        if (activeFilter === "ALL") return true;
+        if (activeFilter === "ISSUES") return f.status !== "PASS";
+        return f.status === activeFilter;
+      });
+
+      let html = `
+        <div class="summary-strip">
+          <div class="metric-card">
+            <div class="metric-label">Rules Checked</div>
+            <div class="metric-value">${lastReport.total_rules}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Flagged</div>
+            <div class="metric-value" style="color:var(--high)">${lastReport.flagged_count}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Missing</div>
+            <div class="metric-value" style="color:var(--med)">${lastReport.missing_count}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Passed</div>
+            <div class="metric-value" style="color:var(--pass)">${passCount}</div>
+          </div>
+        </div>
+
+        <div class="filter-tabs">
+          <button type="button" class="tab-btn ${activeFilter === "ALL" ? "active" : ""}" data-filter="ALL">All (${findings.length})</button>
+          <button type="button" class="tab-btn ${activeFilter === "ISSUES" ? "active" : ""}" data-filter="ISSUES">Action Required (${lastReport.flagged_count + lastReport.missing_count})</button>
+          <button type="button" class="tab-btn ${activeFilter === "PASS" ? "active" : ""}" data-filter="PASS">Compliant (${passCount})</button>
+        </div>
+      `;
+
+      filtered.forEach((f) => {
+        const quoteBlock = f.exact_quote ? `
+          <div class="quote-box">
+            <div class="quote-meta">
+              <span>${f.quote_verified ? "Verified Substring Match" : "Unverified Quote"}</span>
+              ${f.quote_verified ? `<button type="button" class="btn-sm locate-btn" data-quote="${escapeAttr(f.exact_quote)}">Locate in Contract</button>` : ""}
+            </div>
+            <div>"${escapeHtml(f.exact_quote)}"</div>
+          </div>` : "";
+
+        const redlineBlock = f.redline ? `
+          <div class="redline-box">
+            <div class="redline-header">
+              <span>Proposed Fallback Clause (${escapeHtml(f.redline.action_type)})</span>
+              <button type="button" class="btn-sm copy-clause-btn" data-clause="${escapeAttr(f.redline.proposed_clause)}">Copy Clause</button>
+            </div>
+            <div class="redline-clause">${escapeHtml(f.redline.proposed_clause)}</div>
+            <div class="redline-note"><strong>Negotiation Rationale:</strong> ${escapeHtml(f.redline.negotiation_note)}</div>
+          </div>` : "";
+
+        html += `
+          <div class="finding-card status-${escapeAttr(f.status)}">
+            <div class="finding-top">
+              <div>
+                <div class="finding-id">${escapeHtml(f.rule_id)}</div>
+                <div class="finding-title">${escapeHtml(f.rule_title)}</div>
+              </div>
+              <div class="badges">
+                <span class="badge badge-${escapeAttr(f.severity)}">${escapeHtml(f.severity)}</span>
+                <span class="badge badge-${escapeAttr(f.status)}">${escapeHtml(f.status.replace("_", " "))}</span>
+              </div>
+            </div>
+            <div class="statute-tag">${escapeHtml(f.statute_reference)}</div>
+            <div class="explanation">${escapeHtml(f.plain_explanation)}</div>
+            ${quoteBlock}
+            ${redlineBlock}
+          </div>`;
+      });
+
+      resultsBody.innerHTML = html;
+
+      resultsBody.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeFilter = btn.dataset.filter;
+          renderReport();
+        });
+      });
+
+      resultsBody.querySelectorAll(".locate-btn").forEach(btn => {
+        btn.addEventListener("click", () => highlightContractQuote(btn.dataset.quote));
+      });
+
+      resultsBody.querySelectorAll(".copy-clause-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(btn.dataset.clause);
+          btn.textContent = "Copied";
+          setTimeout(() => { btn.textContent = "Copy Clause"; }, 1500);
+        });
+      });
+    }
+
+    function renderRulesEditor() {
+      const container = document.getElementById("rulesEditorList");
+      container.innerHTML = playbookState.rules.map((rule, index) => `
+        <div class="rule-editor-card" data-index="${index}">
+          <div class="rule-editor-top">
+            <label class="toggle-label" style="color:var(--text); font-weight:600;">
+              <input type="checkbox" class="rule-enabled" ${rule.enabled ? "checked" : ""} />
+              <span>${escapeHtml(rule.id)} — ${escapeHtml(rule.category)}</span>
+            </label>
+            <button type="button" class="btn-sm remove-rule-btn" data-index="${index}">Remove</button>
+          </div>
+          <div class="field-grid">
+            <div class="field-group">
+              <label>Rule Title</label>
+              <input type="text" class="rule-title" value="${escapeAttr(rule.title)}" />
+            </div>
+            <div class="field-group">
+              <label>Severity</label>
+              <select class="rule-severity">
+                <option value="HIGH" ${rule.severity === "HIGH" ? "selected" : ""}>HIGH</option>
+                <option value="MEDIUM" ${rule.severity === "MEDIUM" ? "selected" : ""}>MEDIUM</option>
+                <option value="LOW" ${rule.severity === "LOW" ? "selected" : ""}>LOW</option>
+              </select>
+            </div>
+            <div class="field-group full">
+              <label>Statutory / Guideline Reference</label>
+              <input type="text" class="rule-statute" value="${escapeAttr(rule.statute_reference)}" />
+            </div>
+            <div class="field-group full">
+              <label>Target Position (Acceptable Standard)</label>
+              <textarea class="rule-target">${escapeHtml(rule.target_position)}</textarea>
+            </div>
+            <div class="field-group full">
+              <label>Unacceptable Triggers (Flag Conditions)</label>
+              <textarea class="rule-triggers">${escapeHtml(rule.unacceptable_triggers)}</textarea>
+            </div>
+          </div>
+        </div>
+      `).join("");
+
+      container.querySelectorAll(".remove-rule-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          collectRulesFromEditor();
+          playbookState.rules.splice(Number(btn.dataset.index), 1);
+          renderRulesEditor();
+        });
+      });
+    }
+
+    function collectRulesFromEditor() {
+      const cards = document.querySelectorAll(".rule-editor-card");
+      cards.forEach((card, idx) => {
+        if (!playbookState.rules[idx]) return;
+        playbookState.rules[idx].enabled = card.querySelector(".rule-enabled").checked;
+        playbookState.rules[idx].title = card.querySelector(".rule-title").value.trim();
+        playbookState.rules[idx].severity = card.querySelector(".rule-severity").value;
+        playbookState.rules[idx].statute_reference = card.querySelector(".rule-statute").value.trim();
+        playbookState.rules[idx].target_position = card.querySelector(".rule-target").value.trim();
+        playbookState.rules[idx].unacceptable_triggers = card.querySelector(".rule-triggers").value.trim();
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/'/g, "&#39;");
+    }
+
+    init();
+  </script>
+</body>
+</html>
