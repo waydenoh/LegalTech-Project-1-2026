@@ -70,13 +70,16 @@ func (e *Engine) ReviewContract(ctx context.Context, pb playbook.Playbook, contr
 			activeRules = append(activeRules, r)
 		}
 	}
+	if len(activeRules) == 0 {
+		return nil, fmt.Errorf("no active playbook rules enabled; enable at least one rule before running a review")
+	}
 
 	rulesJSON, err := json.MarshalIndent(activeRules, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("marshal active rules: %w", err)
 	}
 
-	systemPrompt := "You are a Singapore contract playbook compliance assistant. Evaluate the provided contract against every active playbook rule. Set status to PASS if compliant, FLAGGED if it violates target_position or triggers unacceptable_triggers (include an exact verbatim substring from the contract in exact_quote), or MISSING_CLAUSE if required terms are absent (set exact_quote to empty string)."
+	systemPrompt := "You are a Singapore contract playbook compliance assistant. Evaluate the provided contract against every active playbook rule. Set status to PASS if compliant, FLAGGED if it violates target_position or triggers unacceptable_triggers (include an exact verbatim substring from the contract in exact_quote), or MISSING_CLAUSE if required terms are absent (set exact_quote to empty string). Keep plain_explanation concise (1-2 sentences)."
 
 	userPrompt := fmt.Sprintf("ACTIVE PLAYBOOK RULES:\n%s\n\nCONTRACT TEXT:\n%s", string(rulesJSON), contractText)
 

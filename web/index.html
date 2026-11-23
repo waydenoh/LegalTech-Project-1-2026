@@ -6,22 +6,26 @@
   <title>SG Playbook Contract Reviewer</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #1e293b;
-      --panel-alt: #162033;
-      --border: #334155;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
+      --bg: #141416;
+      --surface: #1c1c1f;
+      --surface-alt: #232327;
+      --border: #2e2e33;
+      --border-hover: #42424a;
+      --text: #f2f2f4;
+      --text-secondary: #b8b8c2;
+      --muted: #82828e;
+      --primary: #e4e4e7;
+      --primary-text: #141416;
+      --primary-hover: #ffffff;
       --high: #ef4444;
-      --high-bg: rgba(239, 68, 68, 0.14);
+      --high-bg: rgba(239, 68, 68, 0.12);
       --med: #f59e0b;
-      --med-bg: rgba(245, 158, 11, 0.14);
-      --low: #38bdf8;
-      --low-bg: rgba(56, 189, 248, 0.14);
+      --med-bg: rgba(245, 158, 11, 0.12);
+      --low: #60a5fa;
+      --low-bg: rgba(96, 165, 250, 0.12);
       --pass: #10b981;
-      --pass-bg: rgba(16, 185, 129, 0.14);
+      --pass-bg: rgba(16, 185, 129, 0.12);
+      --radius: 8px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       --sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     }
@@ -39,74 +43,67 @@
       user-select: none;
     }
 
-    .disclaimer-bar {
-      background: #172554;
-      border-bottom: 1px solid #1e40af;
-      color: #bfdbfe;
-      font-size: 12px;
-      padding: 6px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
     header {
-      background: var(--panel);
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 12px 18px;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .brand { display: flex; flex-direction: column; }
-    .brand h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    .brand { display: flex; align-items: baseline; gap: 12px; }
+    .brand h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
     .brand span { font-size: 12px; color: var(--muted); }
 
-    .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .controls { display: flex; align-items: center; gap: 10px; }
 
     .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      background: var(--panel-alt);
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      background: var(--bg);
       border: 1px solid var(--border);
-      color: var(--muted);
+      color: var(--text-secondary);
     }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--high); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--high); }
     .status-dot.online { background: var(--pass); }
 
     select, button {
       font-family: var(--sans);
-      font-size: 13px;
-      border-radius: 6px;
+      font-size: 12.5px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
-      padding: 7px 12px;
-      background: var(--panel-alt);
+      padding: 6px 12px;
+      background: var(--surface-alt);
       color: var(--text);
       cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
     }
-    button:hover { border-color: #475569; background: #263349; }
+    select:hover, button:hover { border-color: var(--border-hover); background: #2c2c32; }
+    select:focus, button:focus { outline: none; border-color: var(--muted); }
 
     button.primary {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-text);
       font-weight: 600;
-      color: #ffffff;
     }
-    button.primary:hover { background: var(--accent-hover); }
-    button.primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    button.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+    button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
 
     .toggle-label {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 12px;
-      color: var(--muted);
+      color: var(--text-secondary);
       cursor: pointer;
     }
 
@@ -126,30 +123,29 @@
     .pane:last-child { border-right: none; }
 
     .pane-header {
-      padding: 10px 16px;
-      background: var(--panel-alt);
+      padding: 10px 20px;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
+      min-height: 46px;
     }
     .pane-title {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--muted);
     }
-    .pane-actions { display: flex; gap: 8px; }
-    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    .pane-actions { display: flex; align-items: center; gap: 8px; }
 
     .contract-body {
       flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 0;
-      position: relative;
     }
 
     textarea#contractInput {
@@ -157,45 +153,46 @@
       width: 100%;
       border: none;
       resize: none;
-      padding: 18px;
+      padding: 20px;
       background: var(--bg);
       color: var(--text);
       font-family: var(--mono);
       font-size: 13px;
-      line-height: 1.65;
+      line-height: 1.7;
       user-select: text;
     }
     textarea#contractInput:focus { outline: none; }
+    textarea#contractInput::placeholder { color: var(--muted); }
 
     #contractHighlightView {
       display: none;
       flex: 1;
       overflow-y: auto;
-      padding: 18px;
+      padding: 20px;
       background: var(--bg);
       font-family: var(--mono);
       font-size: 13px;
-      line-height: 1.65;
+      line-height: 1.7;
       white-space: pre-wrap;
       word-break: break-word;
       user-select: text;
     }
 
     mark.quote-highlight {
-      background: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.28);
       color: #fef3c7;
       border-bottom: 2px solid var(--med);
-      padding: 2px 0;
+      padding: 1px 0;
       border-radius: 2px;
     }
 
     .results-body {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       user-select: text;
     }
 
@@ -205,10 +202,10 @@
       gap: 10px;
     }
     .metric-card {
-      background: var(--panel);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: var(--radius);
+      padding: 10px 14px;
     }
     .metric-label {
       font-size: 11px;
@@ -216,34 +213,32 @@
       letter-spacing: 0.05em;
       color: var(--muted);
     }
-    .metric-value { font-size: 20px; font-weight: 700; margin-top: 2px; }
+    .metric-value { font-size: 20px; font-weight: 600; margin-top: 2px; }
 
     .filter-tabs {
       display: flex;
       gap: 6px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
     }
     .tab-btn {
       font-size: 12px;
-      padding: 5px 10px;
-      border-radius: 5px;
+      padding: 5px 12px;
+      border-radius: 6px;
       background: transparent;
       border: 1px solid transparent;
       color: var(--muted);
     }
     .tab-btn.active {
-      background: var(--panel);
+      background: var(--surface-alt);
       border-color: var(--border);
       color: var(--text);
-      font-weight: 600;
+      font-weight: 500;
     }
 
     .finding-card {
-      background: var(--panel);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-left: 4px solid var(--border);
-      border-radius: 8px;
+      border-left: 3px solid var(--border);
+      border-radius: var(--radius);
       padding: 14px 16px;
       display: flex;
       flex-direction: column;
@@ -254,25 +249,26 @@
     .finding-card.status-PASS { border-left-color: var(--pass); }
 
     .finding-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .finding-title { font-size: 14px; font-weight: 600; }
-    .finding-id { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .finding-title { font-size: 13.5px; font-weight: 600; }
+    .finding-id { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 2px; }
 
     .badges { display: flex; gap: 6px; flex-shrink: 0; }
     .badge {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
+      letter-spacing: 0.02em;
     }
-    .badge-HIGH { background: var(--high-bg); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
-    .badge-MEDIUM { background: var(--med-bg); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
-    .badge-LOW { background: var(--low-bg); color: #7dd3fc; border: 1px solid rgba(56,189,248,0.3); }
-    .badge-PASS { background: var(--pass-bg); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+    .badge-HIGH { background: var(--high-bg); color: #fca5a5; }
+    .badge-MEDIUM { background: var(--med-bg); color: #fcd34d; }
+    .badge-LOW { background: var(--low-bg); color: #93c5fd; }
+    .badge-PASS { background: var(--pass-bg); color: #6ee7b7; }
     .badge-FLAGGED { background: var(--high-bg); color: #fca5a5; }
     .badge-MISSING_CLAUSE { background: var(--med-bg); color: #fcd34d; }
 
-    .statute-tag { font-size: 12px; color: #93c5fd; font-weight: 500; }
-    .explanation { font-size: 13px; line-height: 1.55; color: #e2e8f0; }
+    .statute-tag { font-size: 12px; color: var(--muted); }
+    .explanation { font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
 
     .quote-box {
       background: var(--bg);
@@ -281,7 +277,7 @@
       padding: 10px 12px;
       font-family: var(--mono);
       font-size: 12px;
-      color: #cbd5e1;
+      color: var(--text-secondary);
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -296,14 +292,14 @@
     }
 
     .redline-box {
-      background: rgba(16, 185, 129, 0.07);
-      border: 1px solid rgba(16, 185, 129, 0.28);
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px solid rgba(16, 185, 129, 0.22);
       border-radius: 6px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .redline-header {
       display: flex;
@@ -319,71 +315,82 @@
       font-family: var(--mono);
       font-size: 12px;
       line-height: 1.55;
-      color: #ecfdf5;
-      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      background: var(--bg);
       padding: 10px;
       border-radius: 4px;
       white-space: pre-wrap;
     }
-    .redline-note { font-size: 12px; color: #a7f3d0; }
+    .redline-note { font-size: 12px; color: var(--text-secondary); }
 
     .empty-state {
       margin: auto;
       text-align: center;
-      max-width: 380px;
+      max-width: 360px;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.6;
+    }
+
+    footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11.5px;
+      padding: 6px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .drawer-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(2, 6, 23, 0.72);
+      background: rgba(0, 0, 0, 0.65);
       z-index: 40;
       justify-content: flex-end;
     }
     .drawer-backdrop.open { display: flex; }
 
     .drawer {
-      width: 660px;
+      width: 640px;
       max-width: 95vw;
-      background: var(--panel);
+      background: var(--surface);
       border-left: 1px solid var(--border);
       height: 100%;
       display: flex;
       flex-direction: column;
     }
     .drawer-header {
-      padding: 14px 18px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .drawer-header h2 { margin: 0; font-size: 15px; font-weight: 600; }
+    .drawer-header h2 { margin: 0; font-size: 14.5px; font-weight: 600; }
     .drawer-body {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 18px;
+      padding: 16px 20px;
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
     .drawer-footer {
-      padding: 12px 18px;
+      padding: 12px 20px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--panel-alt);
+      background: var(--bg);
     }
 
     .rule-editor-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius);
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -394,29 +401,29 @@
     .field-group { display: flex; flex-direction: column; gap: 4px; }
     .field-group.full { grid-column: 1 / -1; }
     .field-group label {
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
     .field-group input, .field-group textarea, .field-group select {
-      background: var(--panel);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 6px 8px;
       font-size: 12px;
       font-family: var(--sans);
       user-select: text;
     }
-    .field-group textarea { resize: vertical; min-height: 48px; }
+    .field-group textarea { resize: vertical; min-height: 46px; }
 
     .spinner {
       display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(20, 20, 22, 0.25);
+      border-top-color: var(--primary-text);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       vertical-align: middle;
@@ -426,85 +433,87 @@
   </style>
 </head>
 <body>
-  <div class="disclaimer-bar">
-    <span id="disclaimerText">PORTFOLIO DEMO ONLY — NOT LEGAL ADVICE. Rules and statutory references must be reviewed by a Singapore-qualified Advocate &amp; Solicitor before reliance.</span>
-    <span>Local-First Desktop App (Ollama)</span>
-  </div>
-
   <header>
     <div class="brand">
-      <h1>Singapore Playbook Contract Reviewer</h1>
-      <span id="playbookSubtitle">Residential Tenancy Agreement — Statutory &amp; Playbook Audit</span>
+      <h1>SG Playbook Reviewer</h1>
+      <span id="playbookSubtitle">Singapore Residential Tenancy</span>
     </div>
 
     <div class="controls">
-      <div class="status-pill" id="ollamaStatus">
+      <div class="status-pill" id="ollamaStatus" title="Local Ollama connection status">
         <span class="status-dot" id="ollamaDot"></span>
-        <span id="ollamaStatusText">Checking Ollama...</span>
+        <span id="ollamaStatusText">Connecting...</span>
       </div>
 
-      <select id="modelSelect" title="Select local Ollama model">
+      <select id="modelSelect" title="Local Ollama model">
         <option value="qwen3.5:4b">qwen3.5:4b</option>
       </select>
 
-      <label class="toggle-label">
-        <input type="checkbox" id="redlineToggle" checked />
-        Draft Fallback Redlines
-      </label>
-
-      <button type="button" id="openPlaybookBtn">Edit Playbook (<span id="activeRuleCount">8</span>)</button>
-      <button type="button" class="primary" id="runAuditBtn">Run Playbook Review</button>
+      <button type="button" id="openPlaybookBtn">Playbook (<span id="activeRuleCount">8</span>)</button>
+      <button type="button" class="primary" id="runAuditBtn">Run Review</button>
     </div>
   </header>
 
   <main class="workspace">
     <section class="pane">
       <div class="pane-header">
-        <span class="pane-title">Contract Document</span>
+        <span class="pane-title">Contract</span>
         <div class="pane-actions">
           <input type="file" id="filePicker" accept=".txt,.md" style="display:none;" />
-          <button type="button" class="btn-sm" id="openFileBtn">Open .txt File</button>
-          <button type="button" class="btn-sm" id="loadSampleNonCompliantBtn">Sample (Traps)</button>
-          <button type="button" class="btn-sm" id="loadSampleCompliantBtn">Sample (Standard)</button>
+          <button type="button" class="btn-sm" id="openFileBtn">Open .txt</button>
+          <select id="sampleSelect" class="btn-sm" title="Load a sample tenancy agreement">
+            <option value="">Load Sample...</option>
+            <option value="traps">Sample: Non-Compliant (Traps)</option>
+            <option value="standard">Sample: Standard Compliant</option>
+          </select>
           <button type="button" class="btn-sm" id="toggleEditModeBtn" style="display:none;">Edit Text</button>
         </div>
       </div>
       <div class="contract-body">
-        <textarea id="contractInput" placeholder="Paste a Singapore Residential Tenancy Agreement here, open a .txt file, or load one of the sample templates above..."></textarea>
+        <textarea id="contractInput" placeholder="Paste a Singapore Residential Tenancy Agreement here, open a .txt file, or select a sample above..."></textarea>
         <div id="contractHighlightView"></div>
       </div>
     </section>
 
     <section class="pane">
       <div class="pane-header">
-        <span class="pane-title">Compliance &amp; Redline Report</span>
+        <span class="pane-title">Audit Report</span>
         <div class="pane-actions">
-          <button type="button" class="btn-sm" id="copyMarkdownBtn" disabled>Copy Markdown</button>
-          <button type="button" class="btn-sm" id="downloadMarkdownBtn" disabled>Save Report (.md)</button>
+          <label class="toggle-label" title="Generate balanced fallback clauses for flagged or missing rules">
+            <input type="checkbox" id="redlineToggle" checked />
+            Redlines
+          </label>
+          <button type="button" class="btn-sm" id="copyMarkdownBtn" style="display:none;">Copy .md</button>
+          <button type="button" class="btn-sm" id="downloadMarkdownBtn" style="display:none;">Export .md</button>
         </div>
       </div>
 
       <div class="results-body" id="resultsBody">
         <div class="empty-state">
-          Load or paste a contract on the left, customize your Singapore statutory rules in <strong>Edit Playbook</strong>, and click <strong>Run Playbook Review</strong>.
+          Paste or load a tenancy agreement on the left, then click <strong>Run Review</strong> to audit against your Singapore statutory playbook.
         </div>
       </div>
     </section>
   </main>
 
+  <footer>
+    <span id="disclaimerText">Portfolio demo only &mdash; not legal advice. Have a Singapore-qualified Advocate &amp; Solicitor review rules before reliance.</span>
+    <span>Local-First &middot; Zero Cloud Egress</span>
+  </footer>
+
   <div class="drawer-backdrop" id="playbookDrawer">
     <div class="drawer">
       <div class="drawer-header">
-        <h2>Editable Playbook Rules (Singapore)</h2>
+        <h2>Playbook Rules (Singapore)</h2>
         <button type="button" class="btn-sm" id="closePlaybookBtn">Close</button>
       </div>
       <div class="drawer-body" id="rulesEditorList"></div>
       <div class="drawer-footer">
         <div style="display:flex; gap:8px;">
-          <button type="button" class="btn-sm" id="addRuleBtn">+ Add Custom Rule</button>
+          <button type="button" class="btn-sm" id="addRuleBtn">+ Add Rule</button>
           <button type="button" class="btn-sm" id="resetPlaybookBtn">Reset Defaults</button>
         </div>
-        <button type="button" class="primary btn-sm" id="savePlaybookBtn">Save Playbook</button>
+        <button type="button" class="primary btn-sm" id="savePlaybookBtn">Save Changes</button>
       </div>
     </div>
   </div>
@@ -563,7 +572,6 @@ The Landlord and estate agents shall collect, use, and disclose the Tenant's per
 8. GOVERNING LAW
 This Agreement is governed by the laws of the Republic of Singapore, and the parties submit to the non-exclusive jurisdiction of the Singapore Courts (including the Small Claims Tribunals where applicable).`;
 
-    // Keep desktop host alive while window is open; exit cleanly when window closes
     setInterval(() => { fetch("/api/ping").catch(() => {}); }, 2000);
     window.addEventListener("beforeunload", () => {
       navigator.sendBeacon("/api/shutdown");
@@ -585,11 +593,11 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         const data = await res.json();
         if (data.ollama_err) {
           dot.classList.remove("online");
-          text.textContent = "Ollama Offline";
+          text.textContent = "Offline";
           return;
         }
         dot.classList.add("online");
-        text.textContent = "Ollama Connected";
+        text.textContent = "Ollama Ready";
         if (Array.isArray(data.models) && data.models.length > 0) {
           select.innerHTML = data.models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
         }
@@ -616,7 +624,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
     function updatePlaybookHeader() {
       const activeCount = playbookState.rules.filter(r => r.enabled).length;
       document.getElementById("activeRuleCount").textContent = activeCount;
-      document.getElementById("playbookSubtitle").textContent = `${playbookState.name} (${activeCount} active rules)`;
+      document.getElementById("playbookSubtitle").textContent = playbookState.name;
       if (playbookState.disclaimer) {
         document.getElementById("disclaimerText").textContent = playbookState.disclaimer;
       }
@@ -636,14 +644,15 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         e.target.value = "";
       });
 
-      document.getElementById("loadSampleNonCompliantBtn").addEventListener("click", () => {
-        switchToEditMode();
-        document.getElementById("contractInput").value = SAMPLE_NON_COMPLIANT;
-      });
-
-      document.getElementById("loadSampleCompliantBtn").addEventListener("click", () => {
-        switchToEditMode();
-        document.getElementById("contractInput").value = SAMPLE_COMPLIANT;
+      document.getElementById("sampleSelect").addEventListener("change", (e) => {
+        if (e.target.value === "traps") {
+          switchToEditMode();
+          document.getElementById("contractInput").value = SAMPLE_NON_COMPLIANT;
+        } else if (e.target.value === "standard") {
+          switchToEditMode();
+          document.getElementById("contractInput").value = SAMPLE_COMPLIANT;
+        }
+        e.target.value = "";
       });
 
       document.getElementById("toggleEditModeBtn").addEventListener("click", switchToEditMode);
@@ -659,9 +668,9 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
       });
 
       document.getElementById("addRuleBtn").addEventListener("click", () => {
-        const nextNum = playbookState.rules.length + 1;
+        const nextNum = String(playbookState.rules.length + 1).padStart(2, "0");
         playbookState.rules.push({
-          id: `SG-TA-0${nextNum}`,
+          id: `SG-TA-${nextNum}`,
           category: "Custom Rule",
           title: "New Playbook Requirement",
           enabled: true,
@@ -692,7 +701,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         await navigator.clipboard.writeText(lastMarkdown);
         const btn = document.getElementById("copyMarkdownBtn");
         btn.textContent = "Copied";
-        setTimeout(() => { btn.textContent = "Copy Markdown"; }, 1500);
+        setTimeout(() => { btn.textContent = "Copy .md"; }, 1500);
       });
 
       document.getElementById("downloadMarkdownBtn").addEventListener("click", () => {
@@ -748,8 +757,8 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
 
       resultsBody.innerHTML = `
         <div class="empty-state">
-          Running local two-pass review with <strong>${escapeHtml(document.getElementById("modelSelect").value)}</strong>.<br/>
-          Pass 1 evaluates playbook rules and statutory references; Pass 2 drafts fallback redlines for deviations.
+          Running local review with <strong>${escapeHtml(document.getElementById("modelSelect").value)}</strong>.<br/>
+          Checking active Singapore statutory rules and drafting fallback clauses...
         </div>`;
 
       try {
@@ -769,14 +778,14 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         lastReport = data.report;
         lastMarkdown = data.markdown || "";
         activeFilter = "ALL";
-        document.getElementById("copyMarkdownBtn").disabled = false;
-        document.getElementById("downloadMarkdownBtn").disabled = false;
+        document.getElementById("copyMarkdownBtn").style.display = "inline-block";
+        document.getElementById("downloadMarkdownBtn").style.display = "inline-block";
         renderReport();
       } catch (err) {
         resultsBody.innerHTML = `<div class="finding-card status-FLAGGED"><div class="finding-title">Review Error</div><div class="explanation">${escapeHtml(err.message)}</div></div>`;
       } finally {
         btn.disabled = false;
-        btn.textContent = "Run Playbook Review";
+        btn.textContent = "Run Review";
       }
     }
 
@@ -795,7 +804,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
       let html = `
         <div class="summary-strip">
           <div class="metric-card">
-            <div class="metric-label">Rules Checked</div>
+            <div class="metric-label">Checked</div>
             <div class="metric-value">${lastReport.total_rules}</div>
           </div>
           <div class="metric-card">
@@ -814,7 +823,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
 
         <div class="filter-tabs">
           <button type="button" class="tab-btn ${activeFilter === "ALL" ? "active" : ""}" data-filter="ALL">All (${findings.length})</button>
-          <button type="button" class="tab-btn ${activeFilter === "ISSUES" ? "active" : ""}" data-filter="ISSUES">Action Required (${lastReport.flagged_count + lastReport.missing_count})</button>
+          <button type="button" class="tab-btn ${activeFilter === "ISSUES" ? "active" : ""}" data-filter="ISSUES">Issues (${lastReport.flagged_count + lastReport.missing_count})</button>
           <button type="button" class="tab-btn ${activeFilter === "PASS" ? "active" : ""}" data-filter="PASS">Compliant (${passCount})</button>
         </div>
       `;
@@ -823,8 +832,8 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         const quoteBlock = f.exact_quote ? `
           <div class="quote-box">
             <div class="quote-meta">
-              <span>${f.quote_verified ? "Verified Substring Match" : "Unverified Quote"}</span>
-              ${f.quote_verified ? `<button type="button" class="btn-sm locate-btn" data-quote="${escapeAttr(f.exact_quote)}">Locate in Contract</button>` : ""}
+              <span>${f.quote_verified ? "Verified Match" : "Unverified Quote"}</span>
+              ${f.quote_verified ? `<button type="button" class="btn-sm locate-btn" data-quote="${escapeAttr(f.exact_quote)}">Locate</button>` : ""}
             </div>
             <div>"${escapeHtml(f.exact_quote)}"</div>
           </div>` : "";
@@ -832,11 +841,11 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         const redlineBlock = f.redline ? `
           <div class="redline-box">
             <div class="redline-header">
-              <span>Proposed Fallback Clause (${escapeHtml(f.redline.action_type)})</span>
-              <button type="button" class="btn-sm copy-clause-btn" data-clause="${escapeAttr(f.redline.proposed_clause)}">Copy Clause</button>
+              <span>Fallback Clause (${escapeHtml(f.redline.action_type)})</span>
+              <button type="button" class="btn-sm copy-clause-btn" data-clause="${escapeAttr(f.redline.proposed_clause)}">Copy</button>
             </div>
             <div class="redline-clause">${escapeHtml(f.redline.proposed_clause)}</div>
-            <div class="redline-note"><strong>Negotiation Rationale:</strong> ${escapeHtml(f.redline.negotiation_note)}</div>
+            <div class="redline-note">${escapeHtml(f.redline.negotiation_note)}</div>
           </div>` : "";
 
         html += `
@@ -875,7 +884,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
         btn.addEventListener("click", async () => {
           await navigator.clipboard.writeText(btn.dataset.clause);
           btn.textContent = "Copied";
-          setTimeout(() => { btn.textContent = "Copy Clause"; }, 1500);
+          setTimeout(() => { btn.textContent = "Copy"; }, 1500);
         });
       });
     }
@@ -887,7 +896,7 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
           <div class="rule-editor-top">
             <label class="toggle-label" style="color:var(--text); font-weight:600;">
               <input type="checkbox" class="rule-enabled" ${rule.enabled ? "checked" : ""} />
-              <span>${escapeHtml(rule.id)} — ${escapeHtml(rule.category)}</span>
+              <span>${escapeHtml(rule.id)} &mdash; ${escapeHtml(rule.category)}</span>
             </label>
             <button type="button" class="btn-sm remove-rule-btn" data-index="${index}">Remove</button>
           </div>
@@ -909,11 +918,11 @@ This Agreement is governed by the laws of the Republic of Singapore, and the par
               <input type="text" class="rule-statute" value="${escapeAttr(rule.statute_reference)}" />
             </div>
             <div class="field-group full">
-              <label>Target Position (Acceptable Standard)</label>
+              <label>Target Position</label>
               <textarea class="rule-target">${escapeHtml(rule.target_position)}</textarea>
             </div>
             <div class="field-group full">
-              <label>Unacceptable Triggers (Flag Conditions)</label>
+              <label>Unacceptable Triggers</label>
               <textarea class="rule-triggers">${escapeHtml(rule.unacceptable_triggers)}</textarea>
             </div>
           </div>

@@ -17,7 +17,7 @@ func ToMarkdown(pb playbook.Playbook, report playbook.AuditReport) string {
 	b.WriteString(fmt.Sprintf("- **Missing Clauses:** %d\n\n", report.MissingCount))
 
 	for _, f := range report.Findings {
-		b.WriteString(fmt.Sprintf("## [%s] %s (%s) — %s\n\n", f.Severity, f.RuleTitle, f.RuleID, f.Status))
+		b.WriteString(fmt.Sprintf("## [%s] %s (%s) - %s\n\n", f.Severity, f.RuleTitle, f.RuleID, f.Status))
 		b.WriteString(fmt.Sprintf("- **Statute / Guideline:** %s\n", f.StatuteReference))
 		b.WriteString(fmt.Sprintf("- **Explanation:** %s\n", f.PlainExplanation))
 		if f.ExactQuote != "" {
